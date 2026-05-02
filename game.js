@@ -2194,6 +2194,9 @@ function setMobileKey(button, key, isPressed) {
 function bindMobileControl(button, key) {
   if (!button) return;
 
+  button.addEventListener("contextmenu", (event) => event.preventDefault());
+  button.addEventListener("selectstart", (event) => event.preventDefault());
+
   button.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     event.stopPropagation();
