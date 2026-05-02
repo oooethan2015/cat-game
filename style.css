@@ -1,0 +1,111 @@
+:root {
+  color-scheme: dark;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #14202a;
+  color: #f4f7f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 223, 133, 0.18), transparent 28rem),
+    linear-gradient(180deg, #172a37 0%, #101922 100%);
+}
+
+.game-shell {
+  width: min(100vw - 24px, 1080px);
+}
+
+.hud {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hud div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-actions button {
+  width: auto;
+}
+
+.hud strong {
+  font-size: 20px;
+}
+
+.hud span,
+.status {
+  color: #c8d2d8;
+  font-size: 14px;
+}
+
+button {
+  min-width: 104px;
+  height: 36px;
+  border: 1px solid #8fb5c3;
+  border-radius: 6px;
+  background: #eef9fb;
+  color: #11212b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: #ffffff;
+}
+
+canvas {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  border: 2px solid #516a76;
+  border-radius: 8px;
+  background: #84d6f6;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+}
+
+.status {
+  min-height: 22px;
+  margin: 10px 0 0;
+}
+
+@media (max-width: 640px) {
+  .hud {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 8px 0;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .hud-actions {
+    width: 100%;
+  }
+
+  .hud-actions button {
+    flex: 1;
+    min-width: 0;
+  }
+}

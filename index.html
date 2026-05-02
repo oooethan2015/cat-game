@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>White Cat Stage</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <div class="hud" aria-label="게임 정보">
+        <div>
+          <strong>White Cat Stage</strong>
+          <span>A / D 이동, Space 점프</span>
+        </div>
+        <div class="hud-actions">
+          <button id="restartButton" type="button">Restart</button>
+          <button id="skipStageButton" type="button">스테이지 넘기기</button>
+        </div>
+      </div>
+      <canvas id="gameCanvas" width="960" height="540" aria-label="하얀 고양이 2D 플랫폼 게임"></canvas>
+      <p id="status" class="status" aria-live="polite">스폰 지점에서 출발하세요.</p>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>
