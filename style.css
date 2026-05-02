@@ -25,14 +25,14 @@ body {
 .game-shell {
   width: min(100vw, 1080px);
   min-height: 100dvh;
-  padding: 8px;
+  padding: 4px 8px max(6px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .hud {
-  min-height: 56px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -93,8 +93,8 @@ button:focus-visible {
 }
 
 canvas {
-  width: min(100%, calc((100dvh - 108px) * 16 / 9));
-  max-height: calc(100dvh - 108px);
+  width: min(100%, calc((100dvh - 86px) * 16 / 9));
+  max-height: calc(100dvh - 86px);
   height: auto;
   aspect-ratio: 16 / 9;
   display: block;
@@ -111,11 +111,11 @@ canvas {
 .mobile-controls {
   position: absolute;
   left: 50%;
-  bottom: max(10px, env(safe-area-inset-bottom));
+  bottom: calc(-46px - env(safe-area-inset-bottom) * 0.25);
   z-index: 3;
   display: none;
   align-items: center;
-  gap: 7px;
+  gap: clamp(10px, 3vw, 22px);
   transform: translateX(-50%);
   pointer-events: none;
   touch-action: none;
@@ -145,7 +145,7 @@ canvas {
 
 .mobile-control-jump {
   width: 66px;
-  margin-left: 7px;
+  margin-left: clamp(34px, 11vw, 96px);
   font-size: 14px;
 }
 
@@ -158,7 +158,7 @@ canvas {
 
 .status {
   min-height: 22px;
-  margin: 10px 0 0;
+  margin: 50px 0 0;
 }
 
 @media (max-width: 640px) {
@@ -166,8 +166,8 @@ canvas {
     align-items: flex-start;
     flex-direction: column;
     min-height: 0;
-    gap: 8px;
-    padding: 4px 0 6px;
+    gap: 4px;
+    padding: 2px 0 4px;
   }
 
   .hud strong {
@@ -197,13 +197,13 @@ canvas {
   }
 
   .status {
-    margin-top: 6px;
+    margin-top: 50px;
   }
 }
 
 @media (max-width: 380px), (max-height: 430px) {
   .mobile-controls {
-    bottom: max(8px, env(safe-area-inset-bottom));
+    bottom: calc(-40px - env(safe-area-inset-bottom) * 0.25);
     gap: 6px;
   }
 
@@ -215,8 +215,12 @@ canvas {
 
   .mobile-control-jump {
     width: 58px;
-    margin-left: 5px;
+    margin-left: clamp(24px, 9vw, 58px);
     font-size: 13px;
+  }
+
+  .status {
+    margin-top: 44px;
   }
 }
 
