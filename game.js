@@ -3,6 +3,9 @@ const ctx = canvas.getContext("2d");
 const statusText = document.getElementById("status");
 const restartButton = document.getElementById("restartButton");
 const skipStageButton = document.getElementById("skipStageButton");
+const mobileLeftButton = document.getElementById("mobileLeftButton");
+const mobileRightButton = document.getElementById("mobileRightButton");
+const mobileJumpButton = document.getElementById("mobileJumpButton");
 
 const keys = new Set();
 const CLEAR_OVERLAY_FRAMES = 420;
@@ -2176,6 +2179,40 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+function setMobileKey(button, key, isPressed) {
+  if (!button) return;
+
+  if (isPressed) {
+    keys.add(key);
+    button.classList.add("is-pressed");
+  } else {
+    keys.delete(key);
+    button.classList.remove("is-pressed");
+  }
+}
+
+function bindMobileControl(button, key) {
+  if (!button) return;
+
+  button.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    ensureAudio();
+    button.setPointerCapture(event.pointerId);
+    setMobileKey(button, key, true);
+  });
+
+  const release = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setMobileKey(button, key, false);
+  };
+
+  button.addEventListener("pointerup", release);
+  button.addEventListener("pointercancel", release);
+  button.addEventListener("lostpointercapture", () => setMobileKey(button, key, false));
+}
+
 window.addEventListener("keydown", (event) => {
   ensureAudio();
   const key = event.key.toLowerCase();
@@ -2192,8 +2229,8 @@ window.addEventListener("keyup", (event) => {
   }
 });
 
-canvas.addEventListener("mousedown", (event) => {
-  if (event.button !== 0) return;
+canvas.addEventListener("pointerdown", (event) => {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
   event.preventDefault();
   ensureAudio();
 
@@ -2218,6 +2255,10 @@ canvas.addEventListener("mousedown", (event) => {
 
   throwFireball();
 });
+
+bindMobileControl(mobileLeftButton, "a");
+bindMobileControl(mobileRightButton, "d");
+bindMobileControl(mobileJumpButton, " ");
 
 skipStageButton.addEventListener("click", () => {
   if (currentStageIndex === stages.length - 1 && currentLevel === 1) {
