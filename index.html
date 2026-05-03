@@ -1,35 +1,1147 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>White Cat Stage</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <main class="game-shell">
-      <div class="hud" aria-label="게임 정보">
-        <div>
-          <strong>White Cat Stage</strong>
-          <span>A / D 이동, Space 점프, 클릭 발사</span>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fall Alert</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111318;
+      --panel: #1b2028;
+      --text: #f4f7fb;
+      --muted: #9aa7b5;
+      --accent: #45d6b5;
+      --danger: #ff6464;
+      --gold: #ffd166;
+      --cat: #f2a65a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .shell {
+      width: min(100%, 980px);
+      display: grid;
+      grid-template-columns: minmax(300px, 680px) minmax(220px, 280px);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .game-column {
+      display: grid;
+      gap: 8px;
+    }
+
+    .top-action {
+      width: 100%;
+      min-height: 42px;
+      background: #2b3442;
+      color: var(--text);
+    }
+
+    .game-wrap {
+      position: relative;
+      height: min(760px, calc(100vh - 40px));
+      min-height: 520px;
+      border: 1px solid #2c3441;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #171b22;
+      box-shadow: 0 18px 54px rgba(0, 0, 0, 0.36);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(10, 12, 16, 0.7);
+      text-align: center;
+    }
+
+    .overlay[hidden] {
+      display: none;
+    }
+
+    .overlay-box {
+      width: min(100%, 400px);
+      padding: 22px;
+      border: 1px solid #354153;
+      border-radius: 8px;
+      background: rgba(23, 28, 36, 0.95);
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(32px, 6vw, 56px);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      color: var(--muted);
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mode-button {
+      min-height: 62px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .modal-head h2 {
+      margin-bottom: 0;
+    }
+
+    .icon-button {
+      width: 38px;
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid #3b4656;
+      background: #151920;
+      color: var(--text);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .name-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #404b5c;
+      border-radius: 8px;
+      background: #12161d;
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 8px;
+      max-height: 320px;
+      margin: 14px 0 16px;
+      overflow: auto;
+      text-align: left;
+    }
+
+    .ranking-row {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid #303846;
+      border-radius: 8px;
+      background: #151920;
+    }
+
+    .ranking-row strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty-ranking {
+      margin: 14px 0 16px;
+      color: var(--muted);
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #2c3441;
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #303846;
+    }
+
+    .brand strong {
+      font-size: 20px;
+    }
+
+    .badge {
+      min-width: 52px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: #25312f;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      min-height: 78px;
+      padding: 12px;
+      border: 1px solid #303846;
+      border-radius: 8px;
+      background: #151920;
+    }
+
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .value {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .controls {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .key {
+      display: inline-grid;
+      place-items: center;
+      min-width: 30px;
+      height: 28px;
+      margin-right: 6px;
+      border: 1px solid #404b5c;
+      border-radius: 6px;
+      background: #12161d;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #08201a;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.06);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .secondary {
+      background: #2b3442;
+      color: var(--text);
+    }
+
+    .gold {
+      background: var(--gold);
+      color: #2a2000;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        min-height: 100svh;
+        padding: 8px;
+        place-items: start center;
+      }
+
+      .shell {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .game-column {
+        gap: 6px;
+      }
+
+      .game-wrap {
+        height: min(62svh, 520px);
+        min-height: 390px;
+        border-radius: 6px;
+      }
+
+      .panel {
+        order: -1;
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .controls {
+        display: none;
+      }
+
+      .brand {
+        padding-bottom: 8px;
+      }
+
+      .brand strong {
+        font-size: 18px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .stat {
+        min-height: 58px;
+        padding: 8px 6px;
+      }
+
+      .label {
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+
+      .value {
+        font-size: clamp(17px, 5vw, 22px);
+      }
+
+      .overlay {
+        padding: 14px;
+      }
+
+      .overlay-box {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: clamp(34px, 12vw, 48px);
+      }
+
+      .sub {
+        font-size: 14px;
+        margin-bottom: 14px;
+      }
+
+      .mode-grid {
+        gap: 8px;
+      }
+
+      .mode-button {
+        min-height: 54px;
+        padding: 8px;
+        font-size: 15px;
+      }
+
+      button {
+        min-height: 40px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .game-wrap {
+        height: 58svh;
+        min-height: 360px;
+      }
+
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell" aria-label="Fall Alert game">
+    <section class="game-column">
+      <button id="rankingButton" class="top-action" type="button">랭킹확인</button>
+
+      <div class="game-wrap">
+        <canvas id="game" width="680" height="760" aria-label="falling object dodge game"></canvas>
+
+        <div class="overlay" id="introOverlay">
+          <div class="overlay-box">
+            <h1>Fall Alert</h1>
+            <p class="sub">고양이를 움직여 동그란 낙하물을 피하세요. 원하는 생존 시간을 고르면 바로 시작합니다.</p>
+            <div class="mode-grid">
+              <button class="mode-button" type="button" data-mode="10">10초 버티기</button>
+              <button class="mode-button" type="button" data-mode="30">30초 버티기</button>
+              <button class="mode-button" type="button" data-mode="60">1분 버티기</button>
+              <button class="mode-button gold" type="button" data-mode="infinite">무한</button>
+            </div>
+          </div>
         </div>
-        <div class="hud-actions">
-          <button id="restartButton" type="button">Restart</button>
-          <button id="skipStageButton" type="button">스테이지 넘기기</button>
+
+        <div class="overlay" id="nameOverlay" hidden>
+          <div class="overlay-box">
+            <div class="modal-head">
+              <h2>랭킹 등록</h2>
+              <button id="skipNameButton" class="icon-button" type="button" aria-label="이름 없이 시작">×</button>
+            </div>
+            <p class="sub">랭킹순위를 등록하고 싶으면 이름을 쓰세요</p>
+            <form class="name-form" id="nameForm">
+              <input id="playerNameInput" type="text" maxlength="12" autocomplete="off" placeholder="이름 입력">
+              <button type="submit">이름 등록하고 시작</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="overlay" id="rankingOverlay" hidden>
+          <div class="overlay-box">
+            <div class="modal-head">
+              <h2>랭킹</h2>
+              <button id="closeRankingButton" class="icon-button" type="button" aria-label="랭킹 닫기">×</button>
+            </div>
+            <div class="ranking-list" id="rankingList"></div>
+            <button id="rankingBackButton" class="secondary" type="button">닫기</button>
+          </div>
+        </div>
+
+        <div class="overlay" id="resultOverlay" hidden>
+          <div class="overlay-box">
+            <h2 id="resultTitle">게임 오버</h2>
+            <p class="sub" id="resultText">점수 0</p>
+            <button id="backButton" type="button">인트로로 돌아가기</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="game information">
+      <div class="brand">
+        <strong>Fall Alert</strong>
+        <span class="badge" id="stateBadge">READY</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="label">점수</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">최고</span>
+          <span class="value" id="best">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">모드</span>
+          <span class="value" id="mode">-</span>
+        </div>
+        <div class="stat">
+          <span class="label" id="timeLabel">남은 시간</span>
+          <span class="value" id="time">-</span>
         </div>
       </div>
 
-      <div class="game-stage">
-        <canvas id="gameCanvas" width="960" height="540" aria-label="하얀 고양이 2D 플랫폼 게임"></canvas>
-        <div class="mobile-controls" aria-label="모바일 조작">
-          <button id="mobileLeftButton" class="mobile-control mobile-control-arrow" type="button" aria-label="왼쪽으로 이동">←</button>
-          <button id="mobileRightButton" class="mobile-control mobile-control-arrow" type="button" aria-label="오른쪽으로 이동">→</button>
-          <button id="mobileJumpButton" class="mobile-control mobile-control-jump" type="button" aria-label="점프">점프</button>
-        </div>
-      </div>
+      <button id="pauseButton" class="secondary" type="button">일시정지</button>
 
-      <p id="status" class="status" aria-live="polite">스폰 지점에서 출발하세요.</p>
-    </main>
-    <script src="game.js"></script>
-  </body>
+      <div class="controls">
+        <p><span class="key">←</span><span class="key">→</span>또는 <span class="key">A</span><span class="key">D</span> 이동</p>
+        <p><span class="key">Space</span> 일시정지 / 계속</p>
+        <p>모바일에서는 손가락으로 고양이를 끌어 이동합니다.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const scoreEl = document.getElementById("score");
+    const bestEl = document.getElementById("best");
+    const modeEl = document.getElementById("mode");
+    const timeLabel = document.getElementById("timeLabel");
+    const timeEl = document.getElementById("time");
+    const stateBadge = document.getElementById("stateBadge");
+    const introOverlay = document.getElementById("introOverlay");
+    const nameOverlay = document.getElementById("nameOverlay");
+    const rankingOverlay = document.getElementById("rankingOverlay");
+    const resultOverlay = document.getElementById("resultOverlay");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+    const backButton = document.getElementById("backButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const rankingButton = document.getElementById("rankingButton");
+    const closeRankingButton = document.getElementById("closeRankingButton");
+    const rankingBackButton = document.getElementById("rankingBackButton");
+    const rankingList = document.getElementById("rankingList");
+    const nameForm = document.getElementById("nameForm");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const skipNameButton = document.getElementById("skipNameButton");
+    const modeButtons = document.querySelectorAll("[data-mode]");
+
+    const DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    const keys = new Set();
+    const hazards = [];
+    const rankingStorageKey = "fall-alert-rankings";
+    const playerNameStorageKey = "fall-alert-player-name";
+    const modeNames = {
+      10: "10초",
+      30: "30초",
+      60: "1분",
+      infinite: "무한"
+    };
+
+    let width = 680;
+    let height = 760;
+    let lastTime = 0;
+    let spawnTimer = 0;
+    let elapsed = 0;
+    let score = 0;
+    let best = Number(localStorage.getItem("fall-alert-best") || 0);
+    let running = false;
+    let paused = false;
+    let gameOver = false;
+    let selectedMode = null;
+    let targetSeconds = null;
+    let currentPlayerName = "";
+    let rankingPausedGame = false;
+    let rankingReturnOverlay = "intro";
+    let pointerActive = false;
+    let pointerX = 0;
+    let rankings = loadRankings();
+
+    const player = {
+      x: 0,
+      y: 0,
+      w: 54,
+      h: 52,
+      speed: 430
+    };
+
+    function gameScale() {
+      return clamp(width / 430, 0.72, 1);
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      width = Math.max(280, Math.floor(rect.width));
+      height = Math.max(340, Math.floor(rect.height));
+      const scale = gameScale();
+      player.w = 54 * scale;
+      player.h = 52 * scale;
+      player.speed = 430 * scale;
+      canvas.width = Math.floor(width * DPR);
+      canvas.height = Math.floor(height * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      player.y = height - player.h - 18 * scale;
+      player.x = clamp(player.x || width / 2 - player.w / 2, 14, width - player.w - 14);
+      draw();
+    }
+
+    function startGame(mode, playerName = "") {
+      selectedMode = mode;
+      targetSeconds = mode === "infinite" ? null : Number(mode);
+      currentPlayerName = mode === "infinite" ? playerName.trim() : "";
+      if (currentPlayerName) {
+        localStorage.setItem(playerNameStorageKey, currentPlayerName);
+      }
+      hazards.length = 0;
+      elapsed = 0;
+      score = 0;
+      spawnTimer = 0.25;
+      gameOver = false;
+      paused = false;
+      running = true;
+      pointerActive = false;
+      player.x = width / 2 - player.w / 2;
+      player.y = height - player.h - 18 * gameScale();
+      introOverlay.hidden = true;
+      nameOverlay.hidden = true;
+      rankingOverlay.hidden = true;
+      resultOverlay.hidden = true;
+      pauseButton.textContent = "일시정지";
+      stateBadge.textContent = "RUN";
+      updateHud();
+    }
+
+    function returnToIntro() {
+      hazards.length = 0;
+      elapsed = 0;
+      score = 0;
+      running = false;
+      paused = false;
+      gameOver = false;
+      selectedMode = null;
+      targetSeconds = null;
+      rankingPausedGame = false;
+      pointerActive = false;
+      introOverlay.hidden = false;
+      nameOverlay.hidden = true;
+      rankingOverlay.hidden = true;
+      resultOverlay.hidden = true;
+      pauseButton.textContent = "일시정지";
+      stateBadge.textContent = "READY";
+      updateHud();
+      draw();
+    }
+
+    function level() {
+      if (selectedMode !== "infinite") return 1;
+      return Math.floor(elapsed / 10) + 1;
+    }
+
+    function update(dt) {
+      if (!running || paused || gameOver) return;
+
+      elapsed += dt;
+      score += dt * (10 + level() * 2);
+      spawnTimer -= dt;
+
+      if (targetSeconds !== null && elapsed >= targetSeconds) {
+        completeChallenge();
+        return;
+      }
+
+      const targetX = pointerActive ? pointerX - player.w / 2 : player.x;
+      if (pointerActive) {
+        player.x += (targetX - player.x) * Math.min(1, dt * 14);
+      } else {
+        const moveLeft = keys.has("ArrowLeft") || keys.has("a");
+        const moveRight = keys.has("ArrowRight") || keys.has("d");
+        const dir = (moveRight ? 1 : 0) - (moveLeft ? 1 : 0);
+        player.x += dir * player.speed * dt;
+      }
+      player.x = clamp(player.x, 14, width - player.w - 14);
+
+      if (spawnTimer <= 0) {
+        spawnHazard();
+        const interval = selectedMode === "infinite"
+          ? Math.max(0.18, 0.84 - level() * 0.065)
+          : 0.72;
+        spawnTimer = interval + Math.random() * 0.22;
+      }
+
+      for (let i = hazards.length - 1; i >= 0; i--) {
+        const item = hazards[i];
+        item.y += item.vy * dt;
+        if (collides(player, item)) {
+          endGame();
+          return;
+        }
+        if (item.y - item.size > height) {
+          hazards.splice(i, 1);
+          score += 6;
+        }
+      }
+
+      updateHud();
+    }
+
+    function spawnHazard() {
+      const scale = gameScale();
+      const size = (24 + Math.random() * 30) * scale;
+      const speedLevel = selectedMode === "infinite" ? level() : 1;
+      hazards.push({
+        x: 14 + Math.random() * (width - size - 28),
+        y: -size - 10,
+        size,
+        vy: (160 + speedLevel * 36 + Math.random() * 90) * scale,
+        hue: Math.random() > 0.5 ? "#ff6464" : "#ffd166"
+      });
+    }
+
+    function collides(a, b) {
+      const circleX = b.x + b.size / 2;
+      const circleY = b.y + b.size / 2;
+      const closestX = clamp(circleX, a.x + 4, a.x + a.w - 4);
+      const closestY = clamp(circleY, a.y + 6, a.y + a.h - 2);
+      const dx = circleX - closestX;
+      const dy = circleY - closestY;
+      const radius = b.size / 2 - 3;
+      return dx * dx + dy * dy < radius * radius;
+    }
+
+    function completeChallenge() {
+      running = false;
+      gameOver = true;
+      best = Math.max(best, Math.floor(score));
+      localStorage.setItem("fall-alert-best", String(best));
+      resultTitle.textContent = "성공!";
+      resultText.textContent = `${modeNames[selectedMode]} 버티기 성공 · 점수 ${Math.floor(score)}`;
+      resultOverlay.hidden = false;
+      stateBadge.textContent = "CLEAR";
+      pauseButton.textContent = "일시정지";
+      updateHud();
+      setTimeout(returnToIntro, 1800);
+    }
+
+    function endGame() {
+      running = false;
+      gameOver = true;
+      best = Math.max(best, Math.floor(score));
+      localStorage.setItem("fall-alert-best", String(best));
+      if (selectedMode === "infinite" && currentPlayerName) {
+        saveRanking(currentPlayerName, elapsed, score);
+      }
+      resultTitle.textContent = "게임 오버";
+      resultText.textContent = `점수 ${Math.floor(score)} · 생존 ${Math.floor(elapsed)}초`;
+      resultOverlay.hidden = false;
+      stateBadge.textContent = "HIT";
+      pauseButton.textContent = "일시정지";
+      updateHud();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      drawArena();
+      for (const hazard of hazards) drawHazard(hazard);
+      drawCat();
+      if (paused && running) drawPauseText();
+    }
+
+    function drawArena() {
+      ctx.fillStyle = "#151922";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = "#252d39";
+      ctx.lineWidth = 1;
+      for (let y = 24; y < height; y += 42) {
+        ctx.beginPath();
+        ctx.moveTo(18, y);
+        ctx.lineTo(width - 18, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#202732";
+      ctx.fillRect(10, 10, 8, height - 20);
+      ctx.fillRect(width - 18, 10, 8, height - 20);
+      ctx.fillStyle = "#27313f";
+      ctx.fillRect(18, height - 18, width - 36, 8);
+    }
+
+    function drawCat() {
+      const cx = player.x + player.w / 2;
+      const y = player.y;
+
+      ctx.save();
+      ctx.shadowColor = "rgba(242, 166, 90, 0.38)";
+      ctx.shadowBlur = 16;
+
+      ctx.fillStyle = "#f2a65a";
+      ctx.beginPath();
+      ctx.ellipse(cx, y + 32, 22, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(cx, y + 20, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.moveTo(cx - 17, y + 7);
+      ctx.lineTo(cx - 27, y - 9);
+      ctx.lineTo(cx - 6, y + 1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(cx + 17, y + 7);
+      ctx.lineTo(cx + 27, y - 9);
+      ctx.lineTo(cx + 6, y + 1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffd3a4";
+      ctx.beginPath();
+      ctx.moveTo(cx - 17, y + 3);
+      ctx.lineTo(cx - 22, y - 5);
+      ctx.lineTo(cx - 9, y + 1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(cx + 17, y + 3);
+      ctx.lineTo(cx + 22, y - 5);
+      ctx.lineTo(cx + 9, y + 1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#111318";
+      ctx.beginPath();
+      ctx.arc(cx - 7, y + 18, 2.7, 0, Math.PI * 2);
+      ctx.arc(cx + 7, y + 18, 2.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#6b3a22";
+      ctx.beginPath();
+      ctx.arc(cx, y + 25, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#6b3a22";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 15, y + 26);
+      ctx.lineTo(cx - 27, y + 22);
+      ctx.moveTo(cx - 15, y + 30);
+      ctx.lineTo(cx - 27, y + 32);
+      ctx.moveTo(cx + 15, y + 26);
+      ctx.lineTo(cx + 27, y + 22);
+      ctx.moveTo(cx + 15, y + 30);
+      ctx.lineTo(cx + 27, y + 32);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#d88745";
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.arc(cx + 26, y + 34, 13, -1.6, 1.1);
+      ctx.stroke();
+
+      ctx.fillStyle = "#2b3442";
+      ctx.fillRect(player.x + 7, y + player.h - 4, 12, 6);
+      ctx.fillRect(player.x + player.w - 19, y + player.h - 4, 12, 6);
+      ctx.restore();
+    }
+
+    function drawHazard(item) {
+      const x = item.x + item.size / 2;
+      const y = item.y + item.size / 2;
+      const radius = item.size / 2;
+
+      ctx.save();
+      ctx.fillStyle = item.hue;
+      ctx.shadowColor = item.hue === "#ff6464" ? "rgba(255, 100, 100, 0.32)" : "rgba(255, 209, 102, 0.28)";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
+      ctx.beginPath();
+      ctx.arc(x - radius * 0.28, y - radius * 0.32, radius * 0.24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPauseText() {
+      ctx.fillStyle = "rgba(10, 12, 16, 0.52)";
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = "#f4f7fb";
+      ctx.font = "800 34px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("PAUSED", width / 2, height / 2);
+    }
+
+    function updateHud() {
+      scoreEl.textContent = Math.floor(score);
+      bestEl.textContent = best;
+      modeEl.textContent = selectedMode ? modeNames[selectedMode] : "-";
+
+      if (!selectedMode) {
+        timeLabel.textContent = "남은 시간";
+        timeEl.textContent = "-";
+      } else if (targetSeconds === null) {
+        timeLabel.textContent = "단계";
+        timeEl.textContent = `${level()}단계`;
+      } else {
+        timeLabel.textContent = "남은 시간";
+        timeEl.textContent = `${Math.max(0, Math.ceil(targetSeconds - elapsed))}s`;
+      }
+    }
+
+    function loadRankings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(rankingStorageKey) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function savedPlayerName() {
+      const storedName = (localStorage.getItem(playerNameStorageKey) || "").trim();
+      if (storedName) return storedName;
+
+      const latestNamedRecord = rankings
+        .filter((entry) => String(entry.name || "").trim())
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))[0];
+
+      if (!latestNamedRecord) return "";
+      const rankingName = String(latestNamedRecord.name).trim();
+      localStorage.setItem(playerNameStorageKey, rankingName);
+      return rankingName;
+    }
+
+    function rememberPlayerName(name) {
+      const cleanName = name.trim().slice(0, 12);
+      if (!cleanName) return "";
+      localStorage.setItem(playerNameStorageKey, cleanName);
+      return cleanName;
+    }
+
+    function saveRanking(name, seconds, finalScoreValue) {
+      rankings = loadRankings();
+      const cleanName = name.slice(0, 12);
+      const newSeconds = Number(seconds.toFixed(2));
+      const newScore = Math.floor(finalScoreValue);
+      const existing = rankings.find((entry) => entry.name === cleanName);
+
+      if (existing) {
+        existing.plays = (existing.plays || 1) + 1;
+        if (newSeconds > existing.seconds) {
+          existing.seconds = newSeconds;
+          existing.score = newScore;
+          existing.date = new Date().toISOString();
+        }
+      } else {
+        rankings.push({
+          name: cleanName,
+          seconds: newSeconds,
+          score: newScore,
+          plays: 1,
+          date: new Date().toISOString()
+        });
+      }
+
+      rankings.sort((a, b) => b.seconds - a.seconds);
+      rankings = rankings.slice(0, 20);
+      localStorage.setItem(rankingStorageKey, JSON.stringify(rankings));
+    }
+
+    function showRanking() {
+      renderRankings();
+      rankingPausedGame = running && !paused;
+      rankingReturnOverlay = !introOverlay.hidden ? "intro" :
+        !nameOverlay.hidden ? "name" :
+        !resultOverlay.hidden ? "result" : "none";
+      if (rankingPausedGame) {
+        paused = true;
+        pauseButton.textContent = "계속";
+        stateBadge.textContent = "PAUSE";
+      }
+      introOverlay.hidden = true;
+      nameOverlay.hidden = true;
+      resultOverlay.hidden = true;
+      rankingOverlay.hidden = false;
+    }
+
+    function hideRanking() {
+      rankingOverlay.hidden = true;
+      if (rankingPausedGame && running && !gameOver) {
+        paused = false;
+        pauseButton.textContent = "일시정지";
+        stateBadge.textContent = "RUN";
+      } else if (rankingReturnOverlay === "intro") {
+        introOverlay.hidden = false;
+      } else if (rankingReturnOverlay === "name") {
+        nameOverlay.hidden = false;
+      } else if (rankingReturnOverlay === "result") {
+        resultOverlay.hidden = false;
+      }
+      rankingPausedGame = false;
+      rankingReturnOverlay = "intro";
+    }
+
+    function renderRankings() {
+      rankings = loadRankings();
+      if (rankings.length === 0) {
+        rankingList.innerHTML = '<p class="empty-ranking">아직 등록된 랭킹이 없습니다.</p>';
+        return;
+      }
+
+      rankingList.innerHTML = rankings.map((entry, index) => {
+        const safeName = escapeHtml(entry.name);
+        const seconds = formatSeconds(entry.seconds);
+        return `<div class="ranking-row"><span>${index + 1}</span><strong>${safeName}</strong><span>${seconds}</span></div>`;
+      }).join("");
+    }
+
+    function formatSeconds(seconds) {
+      const total = Math.floor(seconds);
+      const minutes = Math.floor(total / 60);
+      const rest = total % 60;
+      return minutes > 0 ? `${minutes}분 ${rest}초` : `${rest}초`;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function loop(time) {
+      const dt = Math.min(0.033, (time - lastTime) / 1000 || 0);
+      lastTime = time;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function togglePause() {
+      if (!running || gameOver) return;
+      paused = !paused;
+      pauseButton.textContent = paused ? "계속" : "일시정지";
+      stateBadge.textContent = paused ? "PAUSE" : "RUN";
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    window.addEventListener("resize", resize);
+
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      if (["ArrowLeft", "ArrowRight", " ", "a", "d"].includes(key)) {
+        event.preventDefault();
+      }
+      if (key === " ") togglePause();
+      keys.add(key);
+    });
+
+    window.addEventListener("keyup", (event) => {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      keys.delete(key);
+    });
+
+    window.addEventListener("storage", (event) => {
+      if (event.key !== rankingStorageKey) return;
+      rankings = loadRankings();
+      if (!rankingOverlay.hidden) renderRankings();
+    });
+
+    canvas.addEventListener("pointerdown", (event) => {
+      pointerActive = true;
+      pointerX = event.offsetX;
+      canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!pointerActive) return;
+      pointerX = event.offsetX;
+    });
+
+    canvas.addEventListener("pointerup", (event) => {
+      pointerActive = false;
+      canvas.releasePointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      pointerActive = false;
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.mode === "infinite") {
+          const savedName = savedPlayerName();
+          if (savedName) {
+            startGame("infinite", savedName);
+            return;
+          }
+          playerNameInput.value = "";
+          introOverlay.hidden = true;
+          nameOverlay.hidden = false;
+          playerNameInput.focus();
+          return;
+        }
+        startGame(button.dataset.mode);
+      });
+    });
+    nameForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = rememberPlayerName(playerNameInput.value);
+      if (!name) {
+        playerNameInput.focus();
+        return;
+      }
+      startGame("infinite", name);
+    });
+    skipNameButton.addEventListener("click", () => startGame("infinite"));
+    rankingButton.addEventListener("click", showRanking);
+    closeRankingButton.addEventListener("click", hideRanking);
+    rankingBackButton.addEventListener("click", hideRanking);
+    backButton.addEventListener("click", returnToIntro);
+    pauseButton.addEventListener("click", togglePause);
+
+    bestEl.textContent = best;
+    updateHud();
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
 </html>
